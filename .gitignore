@@ -1,0 +1,83 @@
+# =========================
+# Entornos virtuales
+# =========================
+venv/
+env/
+.venv/
+.env/
+pip-wheel-metadata/
+
+# =========================
+# Configuración de PyCharm / JetBrains
+# =========================
+.idea/
+*.iml
+*.iws
+out/
+
+# =========================
+# Archivos compilados de Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =========================
+# Distribución y Empaquetado
+# =========================
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# =========================
+# Caché y Tests (Pytest, Coverage, tox)
+# =========================
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypotheses/
+.pytest_cache/
+htmlcov/
+
+# =========================
+# Jupyter Notebooks
+# =========================
+.ipynb_checkpoints
+
+# =========================
+# Tipado (MyPy)
+# =========================
+.mypy_cache/
+.pyre/
+.typeguard_cache/
+
+# =========================
+# Archivos temporales y del Sistema Operativo
+# =========================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon\r
+*.bak
+*.swp
+*~
