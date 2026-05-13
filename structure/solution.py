@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 
-
 def create_empty_solution(instance):
     """Crea una solució buida"""
 
@@ -197,34 +196,36 @@ def print_solution(solution):
     print()
 
 
-def draw_solution(solution, b=True, t=''):
+def draw_solution(solution, fig_size=None, b=True, t=None, save_fig=None, show_legend=True):
     """Gráfica de la solució"""
 
     # Figura i eixos
-    fig, ax = plt.subplots(figsize=(5.5, 4))
+    fig, ax = plt.subplots(figsize=fig_size)
+
+    ax.set_aspect('equal')
 
     # Dibuixa depòsit
     depot = solution['instance']['nodes'][0]
-    ax.scatter(depot[2][0], depot[2][1], marker='s', c="black", s=30, zorder=3, label="Depòsit")
+    ax.scatter(depot[2][0], depot[2][1], marker='s', c="black", s=30, zorder=3, label="Depòsit", rasterized=True)
 
     # Dibuixar linehaul
     linehauls = solution['instance']['linehauls']
     lx = [solution['instance']['nodes'][nl][2][0] for nl in linehauls]
     ly = [solution['instance']['nodes'][nl][2][1] for nl in linehauls]
-    ax.scatter(lx, ly, marker='o', c="black", s=20, zorder=3, label="Linehaul")
+    ax.scatter(lx, ly, marker='o', c="black", s=20, zorder=3, label="Linehaul", rasterized=True)
 
     # Dibuixar backhaul
     backhauls = solution['instance']['backhauls']
     bx = [solution['instance']['nodes'][nb][2][0] for nb in backhauls]
     by = [solution['instance']['nodes'][nb][2][1] for nb in backhauls]
-    ax.scatter(bx, by, marker='^', c="black", s=20, zorder=3, label="Backhaul")
+    ax.scatter(bx, by, marker='^', c="black", s=20, zorder=3, label="Backhaul", rasterized=True)
 
     # Dibuixa cada ruta
     for k in range(solution['instance']['l']):
         rout = solution['routes'][k]
         rx = [solution['instance']['nodes'][i][2][0] for i in rout]
         ry = [solution['instance']['nodes'][i][2][1] for i in rout]
-        plt.plot(rx, ry, label="Vehicle " + str(k+1), linewidth=1, zorder=2)
+        plt.plot(rx, ry, label="Vehicle " + str(k+1), linewidth=1.2, zorder=2, rasterized=True)
 
     if t:
         plt.title(t + f", of: ${solution['of']}$", fontsize=12)
@@ -233,14 +234,20 @@ def draw_solution(solution, b=True, t=''):
 
     # ax.tick_params(axis='both', which='major', labelsize=8)
     ax.axis('off')
-    ax.legend(
-        loc='upper center',
-        bbox_to_anchor=(0.5, -0.12),
-        ncol=4,
-        fontsize=10,
-        frameon=False
-    )
+    if show_legend:
+        ax.legend(
+            loc='upper center',
+            bbox_to_anchor=(0.5, 0),
+            ncol=4,
+            fontsize=10,
+            frameon=False
+        )
 
     plt.tight_layout()
 
+    if save_fig:
+        plt.savefig(save_fig + '.pdf', format="pdf", bbox_inches="tight", dpi=300)
+
     plt.show(block=b)
+    plt.pause(0.1)
+    plt.pause(0.1)
