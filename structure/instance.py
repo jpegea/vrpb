@@ -33,16 +33,17 @@ def read_instance(path):
         instance['n'] = n
         instance['m'] = m
 
-        instance['nodes'] = [[]*4 for _ in range(n+m+1)]
+        instance['nodes'] = [[0]*4 for _ in range(n+m+1)]
         instance['cost'] = [[0]*(n+m+1) for _ in range(n+m+1)]
 
-        instance['linehauls'] = [[0]*4 for _ in range(n)]
-        instance['backhauls'] = [[0]*4 for _ in range(m)]
+        instance['linehauls'] = set()
+        instance['backhauls'] = set()
 
-        instance['nodes'][0] = [0, 0, (int(x), int(y)), 0]
+        nodes = instance['nodes']
+        linehauls = instance['linehauls']
+        backhauls = instance['backhauls']
 
-        idx_l = 0  # Índex per als nodes del linehaul
-        idx_b = 0  # Índex per als nodes del backhaul
+        nodes[0] = [0, 0, (int(x), int(y)), 0]
 
         for i in range(n+m):
             node_type, node_id, x, y, demand, _, _, _, _ = f.readline().split(',')
@@ -53,56 +54,88 @@ def read_instance(path):
                 node_type = int(node_type)
                 node_id = int(node_id)
 
-            instance['nodes'][node_id] = [node_type, node_id, (int(x), int(y)), int(demand)]
+            nodes[node_id] = [node_type, node_id, (int(x), int(y)), int(demand)]
 
-            if int(node_type) == 1:
-                instance['linehauls'][idx_l] = instance['nodes'][node_id][1]
-                idx_l += 1
+            if node_type == 1:
+                linehauls.add(node_id)
 
-            if int(node_type) == 2:
-                instance['backhauls'][idx_b] = instance['nodes'][node_id][1]
-                idx_b += 1
+            if node_type == 2:
+                backhauls.add(node_id)
 
-            for j in range(i+1):
-                dist = math.dist(instance['nodes'][i+1][2], instance['nodes'][j][2])
-                instance['cost'][i+1][j] = round(dist, 2)
-                instance['cost'][j][i+1] = round(dist, 2)
+        cost = instance['cost']
+
+        for i in range(n+m+1):
+
+            i_data = nodes[i]
+            i_pos = i_data[2]
+
+            for j in range(n+m+1):
+
+                if i == j:
+                    continue
+
+                j_data = nodes[j]
+                j_pos = j_data[2]
+
+                dist = math.dist(i_pos, j_pos)
+
+                cost[i][j] = round(dist, 2)
+                cost[j][i] = round(dist, 2)
 
     return instance
 
 
 def export_ampl(inst):
+
+    n = inst['n']
+    m = inst['m']
+
     print('data;\n')
 
-    print(f"param n := {inst['n']};")
-    print(f"param m := {inst['m']};")
+    print(f"param n := {n};")
+    print(f"param m := {m};")
     print(f"param l := {inst['l']};")
     print(f"param q := {inst['q']};\n")
 
-    print(f'param d :=')
-    for node_id in inst['linehauls']:
-        node = inst['nodes'][node_id]
-        print(node[1], end='\t')
-        print(node[3], end=(';\n' if node[1] == inst['linehauls'][-1] else '\n'))
-    print()
+    nodes = inst['nodes']
+    linehauls = inst['linehauls']
+    backhauls = inst['backhauls']
 
-    print(f'param p :=')
-    for node_id in inst['backhauls']:
-        node = inst['nodes'][node_id]
-        print(node[1], end='\t')
-        print(node[3], end=(';\n' if node[1] == inst['backhauls'][-1] else '\n'))
-    print()
+    # Demanda de linehauls
+
+    print(f'param d :=', end='')
+
+    for node_id in linehauls:
+
+        node_data = nodes[node_id]
+        node_demand = node_data[3]
+
+        print(f'\n{node_id}\t{node_demand}', end='')
+
+    print(';\n')
+
+    # Demanda de backhauls
+
+    print(f'param p :=', end='')
+
+    for node_id in backhauls:
+
+        node_data = nodes[node_id]
+        node_demand = node_data[3]
+
+        print(f'\n{node_id}\t{node_demand}', end='')
+
+    print(';\n')
+
+    cost = inst['cost']
 
     print(f'param c :')
-    for i in range(inst['n'] + inst['m'] + 1):
+    for i in range(n+m+1):
         print(f'\t{i}', end='')
-    print(' :=')
-    for i in range(inst['n'] + inst['m'] + 1):
-        print(i, end='\t')
-        for j in range(inst['n'] + inst['m'] + 1):
-            print(inst['cost'][i][j], end='\t')
+    print(' :=', end='')
 
-        if i == inst['n'] + inst['m']:
-            print(';')
-        else:
-            print()
+    for i in range(n+m+1):
+        print(f'\n{i}', end='')
+        for j in range(n+m+1):
+            print(f'\t{cost[i][j]}', end='')
+    print(';\n')
