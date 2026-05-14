@@ -33,7 +33,7 @@ def read_instance(path):
         instance['n'] = n
         instance['m'] = m
 
-        instance['nodes'] = [[0]*4 for _ in range(n+m+1)]
+        instance['nodes'] = [[]*4 for _ in range(n+m+1)]
         instance['cost'] = [[0]*(n+m+1) for _ in range(n+m+1)]
 
         instance['linehauls'] = [[0]*4 for _ in range(n)]
@@ -49,15 +49,18 @@ def read_instance(path):
 
             if file_format == 'tv':
                 node_type, node_id = int(node_id) + 1, int(node_type) - 1
+            else:
+                node_type = int(node_type)
+                node_id = int(node_id)
 
-            instance['nodes'][i+1] = [int(node_type), int(node_id), (int(x), int(y)), int(demand)]
+            instance['nodes'][node_id] = [node_type, node_id, (int(x), int(y)), int(demand)]
 
             if int(node_type) == 1:
-                instance['linehauls'][idx_l] = instance['nodes'][i+1][1]
+                instance['linehauls'][idx_l] = instance['nodes'][node_id][1]
                 idx_l += 1
 
             if int(node_type) == 2:
-                instance['backhauls'][idx_b] = instance['nodes'][i+1][1]
+                instance['backhauls'][idx_b] = instance['nodes'][node_id][1]
                 idx_b += 1
 
             for j in range(i+1):
