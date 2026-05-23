@@ -12,6 +12,8 @@ def execute(inst, time_limit, alpha, strategy='best'):
     while time.time() - start < time_limit:
 
         sol = cgrasp.construct(inst, alpha, first=first_in_construction)
+        while not sol['feasible'] and time.time() - start < time_limit:
+            sol = cgrasp.construct(inst, alpha, first=first_in_construction)
 
         ls_full_check.improve_routes(sol, strategy)
         ls_full_check.combine_routes(sol, strategy)
