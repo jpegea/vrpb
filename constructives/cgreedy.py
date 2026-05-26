@@ -1,10 +1,11 @@
 from structure import solution
 
-def construct(inst, first='both'):
+def construct(inst: dict, beta: float, first: str='both'):
 
     sol = solution.create_empty_solution(inst)
 
-    cl = add_initial_nodes(sol, first)
+    # cl = add_initial_nodes(sol, beta, first)
+    cl = create_candidate_list(sol, beta, first)
 
     pending_linehauls = sol['pending_linehauls']
     pending_backhauls = sol['pending_backhauls']
@@ -16,12 +17,12 @@ def construct(inst, first='both'):
             print("No s'ha trobat una solució factible")
             return sol
 
-        c_min, sel = float('inf'), (0, 0, 0, 0)
+        min_score, sel = float('inf'), (0, 0, 0, 0)
 
         for c in cl:
-            if c[0] < c_min:
-                c_min = c[0]
-                sel = c
+            if c[0] < min_score:
+                min_score = c[0]
+                sel = c[1]
 
         solution.insert_candidate(sol, sel)
 
@@ -29,40 +30,40 @@ def construct(inst, first='both'):
             sol['feasible'] = True
         elif first == 'linehauls' and not pending_linehauls and not last_linehauls_added:
             last_linehauls_added = True
-            cl = create_candidate_list(sol, 'linehauls')
+            cl = create_candidate_list(sol, beta, 'linehauls')
         else:
-            cl = update_candidate_list(sol, cl, sel, first)
+            cl = update_candidate_list(sol, beta, cl, sel, first)
 
     return sol
 
 
-def add_initial_nodes(sol, first = 'both'):
+def add_initial_nodes(sol: dict, beta: float, first: str='both'):
 
     n_vehicles = sol['instance']['l']
 
-    cl = create_candidate_list(sol, first)
+    cl = create_candidate_list(sol, beta, first)
 
     for k in range(n_vehicles):
 
         if not cl:
             break
 
-        max_dist, sel = 0, tuple()
+        score_max, sel = 0, tuple()
 
         for c in cl:
-            if c[1] != k:
+            if c[1][1] != k:
                 continue
-            if c[0] > max_dist:
-                max_dist = c[0]
-                sel = c
+            if c[0] > score_max:
+                score_max = c[0]
+                sel = c[1]
 
         solution.insert_candidate(sol, sel)
-        cl = update_candidate_list(sol, cl, sel, first)
+        cl = update_candidate_list(sol, beta, cl, sel, first)
 
     return cl
 
 
-def create_candidate_list(sol, first='both'):
+def create_candidate_list(sol: dict, beta: float, first: str='both'):
 
     nodes = sol['instance']['nodes']
     cost = sol['instance']['cost']
@@ -121,12 +122,14 @@ def create_candidate_list(sol, first='both'):
                 of_var = cost[prev_id][node_id] + cost[node_id][next_id] - cost[prev_id][next_id]
                 of_var = round(of_var, 2)
 
-                cl.append((of_var, k, j, node_id))
+                score = (1 - beta) * of_var - beta * node_demand
+
+                cl.append((score, (of_var, k, j, node_id)))
 
     return cl
 
 
-def update_candidate_list(sol, cl, added, first='both'):
+def update_candidate_list(sol: dict, beta: float, cl: list, added: tuple, first: str='both'):
 
     _, modified_k, _, added_id = added
 
@@ -144,7 +147,7 @@ def update_candidate_list(sol, cl, added, first='both'):
         pending = pending_linehauls.union(pending_backhauls)
 
     # Es mantenen els candidats que no siguen el node que ja hem afegit ni la ruta que hem modificat
-    new_cl = [c for c in cl if c[3] != added_id and c[1] != modified_k]
+    new_cl = [el for el in cl if el[1][3] != added_id and el[1][1] != modified_k]
 
     route = sol['routes'][modified_k]
 
@@ -187,6 +190,8 @@ def update_candidate_list(sol, cl, added, first='both'):
             of_var = cost[prev_id][node_id] + cost[node_id][next_id] - cost[prev_id][next_id]
             of_var = round(of_var, 2)
 
-            new_cl.append((of_var, modified_k, j, node_id))
+            score = (1 - beta) * of_var - beta * node_demand
+
+            new_cl.append((score, (of_var, modified_k, j, node_id)))
 
     return new_cl

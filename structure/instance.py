@@ -1,28 +1,17 @@
 import math
 
 def read_instance(path):
-    """
-    Llig una instància amb el format indicat
-
-    Parameters
-    ----------
-    path : string
-        Ruta del fitxer
-
-    Returns
-    -------
-    mat : dict
-        Diccionari amb la informació de la instància i el càlcul de distàncies entre nodes.
-    """
 
     instance = {}
 
-    file_format = 'gj'
-    if '/TV/' in path:
-        file_format = 'tv'
+    file_format = 'tv'
 
     with open(path, 'r') as f:
-        next(f)  # Descarta la primera línia
+        first_word, _, _, _, _, _, _, _, _ = f.readline().split(',')
+
+        if first_word == 'type':
+            file_format = 'gj'
+
         _, _, x, y, _, q, l, n, m = f.readline().split(',')
 
         n = int(n)

@@ -263,9 +263,8 @@ def print_solution(solution):
     print()
 
 
-def draw_solution(solution, fig_size=None, b=True, t=None, save_fig=None, show_legend=True,
-                  show_grid=False):
-    """Gráfica de la solució"""
+def draw_solution(solution: dict, fig_size: tuple=None, b: bool=True, t: str=None, save_fig: str=None,
+                  show_legend: bool=True):
 
     nodes = solution['instance']['nodes']
 

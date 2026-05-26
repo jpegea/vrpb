@@ -1,29 +1,82 @@
 from constructives import cgrasp
-from localsearch import ls_full_check
+from localsearch import ls_full
 import statistics, time
 
-def execute(inst, time_limit, alpha, strategy='best'):
-
-    first_in_construction = 'both'
+def execute(inst: dict, time_limit: float, alpha: float, strategy: str='best', first_in_construction: str='linehauls'):
 
     best = {}
+    iters = 0
 
     start = time.time()
+
     while time.time() - start < time_limit:
 
-        sol = cgrasp.construct(inst, alpha, first=first_in_construction)
-        while not sol['feasible'] and time.time() - start < time_limit:
-            sol = cgrasp.construct(inst, alpha, first=first_in_construction)
+        sol = cgrasp.construct(inst, alpha, beta=0, first=first_in_construction)
 
-        ls_full_check.improve_routes(sol, strategy)
-        ls_full_check.combine_routes(sol, strategy)
+        while not sol['feasible']:
+            if time.time() - start > time_limit:
+                if not best:
+                    best = sol
+                return best, iters
+
+            sol = cgrasp.construct(inst, alpha, beta=0, first=first_in_construction)
+
+        iters += 1
+
+        ls_full.improve_routes(sol, strategy)
+        ls_full.combine_routes(sol, strategy)
 
         if not best or sol['of'] < best['of']:
             best = sol
 
-    return best
+    return best, iters
 
+def execute_ensuring_feasibility(inst: dict, time_limit: float, alpha: float, max_not_feasible_ratio: float=.2,
+                                 strategy: str='best', first_in_construction: str='linehauls'):
 
+    best = {}
+    iters = 0
+
+    beta = 0
+    n_created_sols = 0
+    not_feasible_sols = 0
+
+    start = time.time()
+
+    while time.time() - start < time_limit:
+
+        sol = cgrasp.construct(inst, alpha, beta, first=first_in_construction)
+        n_created_sols += 1
+
+        while not sol['feasible']:
+            not_feasible_sols += 1
+
+            if time.time() - start > time_limit:
+                if not best:
+                    best = sol
+                return best, iters
+
+            sol = cgrasp.construct(inst, alpha, beta, first=first_in_construction)
+            n_created_sols += 1
+
+            if not_feasible_sols / n_created_sols > max_not_feasible_ratio and beta < 1:
+                beta += .1
+                print(beta)
+            elif not_feasible_sols / n_created_sols < max_not_feasible_ratio-.05 and beta > 0:
+                beta -= .1
+                print(beta)
+
+        iters += 1
+
+        ls_full.improve_routes(sol, strategy)
+        ls_full.combine_routes(sol, strategy)
+
+        if not best or sol['of'] < best['of']:
+            best = sol
+
+    return best, iters
+
+"""
 def execute2(inst, time_limit, alpha, strategy='best', sample_size=10):
 
     first_in_construction = 'both'
@@ -39,6 +92,7 @@ def execute2(inst, time_limit, alpha, strategy='best', sample_size=10):
 
         # 1er entorn
         ls_full_check.improve_routes(sol, strategy)
+
         of_before = sol['of']
 
         # 2n entorn
@@ -46,18 +100,18 @@ def execute2(inst, time_limit, alpha, strategy='best', sample_size=10):
         of_after = sol['of']
 
         improvements[i] = 1 - of_after / of_before
+        print(improvements[i])
         if not best or of_after < best['of']:
             best = sol
 
     mean = statistics.mean(improvements)
     sd = statistics.stdev(improvements)
 
-    print(f"M: {mean} \t S: {sd}")
-
     while time.time() - start < time_limit:
-        sol = cgrasp.construct(inst, alpha, first=first_in_construction)
-        ls_full_check.improve_routes(sol, strategy)
 
+        sol = cgrasp.construct(inst, alpha, first=first_in_construction)
+
+        ls_full_check.improve_routes(sol, strategy)
         of_before = sol['of']
 
         gap_to_best = 1 - best['of'] / of_before
@@ -70,10 +124,10 @@ def execute2(inst, time_limit, alpha, strategy='best', sample_size=10):
         if of_after < best['of']:
             best = sol
 
-        improvements.append(1 - of_after / of_before)
+        imp = 1 - of_after / of_before
+        improvements.append(imp)
         mean = statistics.mean(improvements)
         sd = statistics.stdev(improvements)
-        print(f"M: {mean} \t S: {sd}")
-        print(f"M: {mean} \t S: {sd}")
 
     return best
+"""

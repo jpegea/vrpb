@@ -1,11 +1,11 @@
 from structure import solution
 
-def improve_routes(sol, strategy='best', show_operations=False):
+def improve_routes(sol: dict, strategy: str='best', show_operations: bool=False):
     for k in range(sol['instance']['l']):
-        improve_route(sol, k, strategy, show_operations)
+        improve_intra_route(sol, k, strategy, show_operations)
 
 
-def combine_routes(sol, strategy='best', show_operations=False):
+def combine_routes(sol: dict, strategy: str='best', show_operations: bool=False):
     improvement = True
     while improvement:
         improvement = inter_shift(sol, strategy)
@@ -17,7 +17,7 @@ def combine_routes(sol, strategy='best', show_operations=False):
                 print('Inter: Swap')
 
 
-def improve_route(sol, k, strategy='best', show_operations=False):
+def improve_intra_route(sol: dict, k: int, strategy: str='best', show_operations: bool=False):
     improvement = True
     while improvement:
         improvement = intra_shift(sol, k, strategy)
@@ -36,7 +36,7 @@ def improve_route(sol, k, strategy='best', show_operations=False):
                     print("Intra: 2-opt")
 
 
-def intra_shift(sol, k, strategy='best'):
+def intra_shift(sol: dict, k: int, strategy: str='best'):
 
     route = sol['routes'][k]
 
@@ -101,7 +101,7 @@ def intra_shift(sol, k, strategy='best'):
     return False
 
 
-def intra_swap(sol, k, strategy='best'):
+def intra_swap(sol: dict, k: int, strategy: str='best'):
 
     route = sol['routes'][k]
 
@@ -162,7 +162,7 @@ def intra_swap(sol, k, strategy='best'):
     return False
 
 
-def intra_2opt(sol, k, strategy='best'):
+def intra_2opt(sol: dict, k: int, strategy: str='best'):
 
     route = sol['routes'][k]
 
@@ -217,7 +217,7 @@ def intra_2opt(sol, k, strategy='best'):
     return False
 
 
-def inter_shift(sol, strategy='best'):
+def inter_shift(sol: dict, strategy: str='best'):
 
     nodes = sol['instance']['nodes']
     cost = sol['instance']['cost']
@@ -296,20 +296,20 @@ def inter_shift(sol, strategy='best'):
                         # First improvement
                         if strategy == 'first':
                             solution.do_inter_shift(sol, sel_routes, sel_nodes, best_of_var)
-                            improve_route(sol, sel_routes[0], strategy)
-                            improve_route(sol, sel_routes[1], strategy)
+                            improve_intra_route(sol, sel_routes[0], strategy)
+                            improve_intra_route(sol, sel_routes[1], strategy)
                             return True
 
     if best_of_var < 0:
         solution.do_inter_shift(sol, sel_routes, sel_nodes, best_of_var)
-        improve_route(sol, sel_routes[0], strategy)
-        improve_route(sol, sel_routes[1], strategy)
+        improve_intra_route(sol, sel_routes[0], strategy)
+        improve_intra_route(sol, sel_routes[1], strategy)
         return True
 
     return False
 
 
-def inter_swap(sol, strategy='best'):
+def inter_swap(sol: dict, strategy: str='best'):
 
     nodes = sol['instance']['nodes']
     cost = sol['instance']['cost']
@@ -417,15 +417,15 @@ def inter_swap(sol, strategy='best'):
                         # First improvement
                         if strategy == 'first':
                             solution.do_inter_swap(sol, sel_routes, sel_nodes, best_of_var)
-                            improve_route(sol, sel_routes[0], strategy)
-                            improve_route(sol, sel_routes[1], strategy)
+                            improve_intra_route(sol, sel_routes[0], strategy)
+                            improve_intra_route(sol, sel_routes[1], strategy)
                             return True
 
     # Best improvement
     if best_of_var < 0:
         solution.do_inter_swap(sol, sel_routes, sel_nodes, best_of_var)
-        improve_route(sol, sel_routes[0], strategy)
-        improve_route(sol, sel_routes[1], strategy)
+        improve_intra_route(sol, sel_routes[0], strategy)
+        improve_intra_route(sol, sel_routes[1], strategy)
         return True
 
     return False
