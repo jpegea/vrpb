@@ -16,7 +16,6 @@ def construct(inst: dict, alpha: float, beta: float, first: str='both'):
     while not sol['feasible']:
 
         if not cl:
-            print("Solució no factible")
             return sol
 
         min_score, max_score = float('inf'), float('-inf')

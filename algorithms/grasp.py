@@ -2,6 +2,7 @@ from constructives import cgrasp
 from localsearch import ls_full
 import statistics, time
 
+
 def execute(inst: dict, time_limit: float, alpha: float, strategy: str='best', first_in_construction: str='linehauls'):
 
     best = {}
@@ -31,7 +32,8 @@ def execute(inst: dict, time_limit: float, alpha: float, strategy: str='best', f
 
     return best, iters
 
-def execute_ensuring_feasibility(inst: dict, time_limit: float, alpha: float, max_not_feasible_ratio: float=.2,
+
+def execute_ensuring_feasibility(inst: dict, time_limit: float, alpha: float, max_not_feasible_ratio: float=.9,
                                  strategy: str='best', first_in_construction: str='linehauls'):
 
     best = {}
@@ -47,6 +49,7 @@ def execute_ensuring_feasibility(inst: dict, time_limit: float, alpha: float, ma
 
         sol = cgrasp.construct(inst, alpha, beta, first=first_in_construction)
         n_created_sols += 1
+        feasibility_checked = 1
 
         while not sol['feasible']:
             not_feasible_sols += 1
@@ -59,14 +62,18 @@ def execute_ensuring_feasibility(inst: dict, time_limit: float, alpha: float, ma
             sol = cgrasp.construct(inst, alpha, beta, first=first_in_construction)
             n_created_sols += 1
 
-            if not_feasible_sols / n_created_sols > max_not_feasible_ratio and beta < 1:
-                beta += .1
-                print(beta)
-            elif not_feasible_sols / n_created_sols < max_not_feasible_ratio-.05 and beta > 0:
-                beta -= .1
-                print(beta)
+            if n_created_sols <= 5 * feasibility_checked:
+                if not_feasible_sols / n_created_sols > max_not_feasible_ratio and beta < 1:
+                    beta += .05
+                    beta = round(beta, 2)
+                elif not_feasible_sols / n_created_sols < max_not_feasible_ratio and beta > 0:
+                    beta -= .01
+                    beta = round(beta, 2)
+                feasibility_checked += 1
 
         iters += 1
+
+        print(f'Sol {iters}: {sol['of']}')
 
         ls_full.improve_routes(sol, strategy)
         ls_full.combine_routes(sol, strategy)
