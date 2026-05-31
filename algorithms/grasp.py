@@ -1,9 +1,10 @@
 from constructives import cgrasp
-from localsearch import ls_full
+from localsearch import ls_full, ls_neighbors
+from structure import instance
 import statistics, time
 
 
-def execute(inst: dict, time_limit: float, alpha: float, strategy: str='best', first_in_construction: str='linehauls'):
+def execute_full_ls(inst: dict, time_limit: float, alpha: float, strategy: str='best', first_in_construction: str='linehauls'):
 
     best = {}
     iters = 0
@@ -25,7 +26,7 @@ def execute(inst: dict, time_limit: float, alpha: float, strategy: str='best', f
         iters += 1
 
         ls_full.improve_routes(sol, strategy)
-        ls_full.combine_routes(sol, strategy)
+        ls_full.improve_inter_route(sol, strategy)
 
         if not best or sol['of'] < best['of']:
             best = sol
@@ -76,12 +77,45 @@ def execute_ensuring_feasibility(inst: dict, time_limit: float, alpha: float, ma
         print(f'Sol {iters}: {sol['of']}')
 
         ls_full.improve_routes(sol, strategy)
-        ls_full.combine_routes(sol, strategy)
+        ls_full.improve_inter_route(sol, strategy)
 
         if not best or sol['of'] < best['of']:
             best = sol
 
     return best, iters
+
+
+def execute_smart_ls(inst: dict, time_limit: float, alpha: float, strategy: str='best', first_in_construction: str='linehauls'):
+
+    neighbors = instance.eval_k_neighbors(inst, 15)
+
+    best = {}
+    iters = 0
+
+    start = time.time()
+
+    while time.time() - start < time_limit:
+
+        sol = cgrasp.construct(inst, alpha, beta=0, first=first_in_construction)
+
+        while not sol['feasible']:
+            if time.time() - start > time_limit:
+                if not best:
+                    best = sol
+                return best, iters
+
+            sol = cgrasp.construct(inst, alpha, beta=0, first=first_in_construction)
+
+        iters += 1
+
+        ls_full.improve_routes(sol, strategy)
+        ls_neighbors.improve_inter_route(sol, neighbors, strategy)
+
+        if not best or sol['of'] < best['of']:
+            best = sol
+
+    return best, iters
+
 
 """
 def execute2(inst, time_limit, alpha, strategy='best', sample_size=10):

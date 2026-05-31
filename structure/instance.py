@@ -17,6 +17,8 @@ def read_instance(path):
         n = int(n)
         m = int(m)
 
+        n_clients = n + m
+
         instance['q'] = int(q)
         instance['l'] = int(l)
         instance['n'] = n
@@ -34,7 +36,7 @@ def read_instance(path):
 
         nodes[0] = [0, 0, (int(x), int(y)), 0]
 
-        for i in range(n+m):
+        for _ in range(n_clients):
             node_type, node_id, x, y, demand, _, _, _, _ = f.readline().split(',')
 
             if file_format == 'tv':
@@ -53,12 +55,12 @@ def read_instance(path):
 
         cost = instance['cost']
 
-        for i in range(n+m+1):
+        for i in range(n_clients + 1):
 
             i_data = nodes[i]
             i_pos = i_data[2]
 
-            for j in range(n+m+1):
+            for j in range(n_clients + 1):
 
                 if i == j:
                     continue
@@ -74,7 +76,30 @@ def read_instance(path):
     return instance
 
 
-def export_ampl(inst):
+def eval_k_neighbors(inst: dict, k: int):
+
+    cost = inst['cost']
+    n_clients = inst['n']
+
+    k_neighbors = {}
+
+    for i in range(1, n_clients + 1):
+
+        distances = []
+
+        for j in range(1, n_clients + 1):
+            if i == j:
+                continue
+            distances.append((cost[i][j], j))
+
+        distances.sort(key=lambda x: x[0])
+
+        k_neighbors[i] = set([j for _, j in distances[:k]])
+
+    return k_neighbors
+
+
+def export_ampl(inst: dict):
 
     n = inst['n']
     m = inst['m']
