@@ -5,7 +5,7 @@ def improve_routes(sol: dict, strategy: str='best', show_operations: bool=False)
         improve_intra_route(sol, k, strategy, show_operations)
 
 
-def combine_routes(sol: dict, strategy: str='best', show_operations: bool=False):
+def improve_inter_route(sol: dict, strategy: str= 'best', show_operations: bool=False):
     improvement = True
     while improvement:
         improvement = inter_shift(sol, strategy)
@@ -38,10 +38,11 @@ def improve_intra_route(sol: dict, k: int, strategy: str='best', show_operations
 
 def intra_shift(sol: dict, k: int, strategy: str='best'):
 
+    inst = sol['instance']
     route = sol['routes'][k]
 
-    nodes = sol['instance']['nodes']
-    cost = sol['instance']['cost']
+    nodes = inst['nodes']
+    cost = inst['cost']
 
     best_of_var = 0
     selected = (0,0)
@@ -103,10 +104,11 @@ def intra_shift(sol: dict, k: int, strategy: str='best'):
 
 def intra_swap(sol: dict, k: int, strategy: str='best'):
 
+    inst = sol['instance']
     route = sol['routes'][k]
 
-    nodes = sol['instance']['nodes']
-    cost = sol['instance']['cost']
+    nodes = inst['nodes']
+    cost = inst['cost']
 
     best_of_var = 0
     selected = (0,0)
@@ -164,10 +166,11 @@ def intra_swap(sol: dict, k: int, strategy: str='best'):
 
 def intra_2opt(sol: dict, k: int, strategy: str='best'):
 
+    inst = sol['instance']
     route = sol['routes'][k]
 
-    nodes = sol['instance']['nodes']
-    cost = sol['instance']['cost']
+    nodes = inst['nodes']
+    cost = inst['cost']
 
     best_of_var = 0
     selected = (0,0)
@@ -219,10 +222,15 @@ def intra_2opt(sol: dict, k: int, strategy: str='best'):
 
 def inter_shift(sol: dict, strategy: str='best'):
 
-    nodes = sol['instance']['nodes']
-    cost = sol['instance']['cost']
-    q = sol['instance']['q']
-    n_vehicles = sol['instance']['l']
+    inst = sol['instance']
+    nodes = inst['nodes']
+    cost = inst['cost']
+    q = inst['q']
+    n_vehicles = inst['l']
+
+    routes = sol['routes']
+    delivery_load = sol['delivery']
+    pickup_load = sol['pickup']
 
     best_of_var = 0
     sel_routes = (0, 0)
@@ -230,17 +238,17 @@ def inter_shift(sol: dict, strategy: str='best'):
 
     for k in range(n_vehicles):
 
-        route_k = sol['routes'][k]
+        route_k = routes[k]
 
         for l in range(n_vehicles):
 
             if k == l:
                 continue
 
-            route_l = sol['routes'][l]
+            route_l = routes[l]
 
-            delivery_load_l = sol['delivery'][l]
-            pickup_load_l = sol['pickup'][l]
+            delivery_load_l = delivery_load[l]
+            pickup_load_l = pickup_load[l]
 
             for i in range(1, len(route_k) - 1):
 
@@ -311,10 +319,15 @@ def inter_shift(sol: dict, strategy: str='best'):
 
 def inter_swap(sol: dict, strategy: str='best'):
 
-    nodes = sol['instance']['nodes']
-    cost = sol['instance']['cost']
-    q = sol['instance']['q']
-    n_vehicles = sol['instance']['l']
+    inst = sol['instance']
+    nodes = inst['nodes']
+    cost = inst['cost']
+    q = inst['q']
+    n_vehicles = inst['l']
+
+    routes = sol['routes']
+    delivery_load = sol['delivery']
+    pickup_load = sol['pickup']
 
     best_of_var = 0
     sel_routes = (0, 0)
@@ -322,17 +335,17 @@ def inter_swap(sol: dict, strategy: str='best'):
 
     for k in range(n_vehicles):
 
-        route_k = sol['routes'][k]
+        route_k = routes[k]
 
-        delivery_load_k = sol['delivery'][k]
-        pickup_load_k = sol['pickup'][k]
+        delivery_load_k = delivery_load[k]
+        pickup_load_k = pickup_load[k]
 
         for l in range(k + 1, n_vehicles):
 
-            route_l = sol['routes'][l]
+            route_l = routes[l]
 
-            delivery_load_l = sol['delivery'][l]
-            pickup_load_l = sol['pickup'][l]
+            delivery_load_l = delivery_load[l]
+            pickup_load_l = pickup_load[l]
 
             for i in range(1, len(route_k) - 1):
 
