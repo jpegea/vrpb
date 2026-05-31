@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-def create_empty_solution(instance):
+def create_empty_solution(instance: dict):
 
     sol = {
         'instance': instance,
@@ -16,7 +16,7 @@ def create_empty_solution(instance):
     return sol
 
 
-def insert_candidate(solution, candidate):
+def insert_candidate(solution: dict, candidate: tuple):
 
     of_var, k, pos, node_id = candidate
 
@@ -53,7 +53,7 @@ def insert_candidate(solution, candidate):
     load[k] += node_demand
 
 
-def do_intra_shift(solution, k, sel_nodes, of_var):
+def do_intra_shift(solution: dict, k: int, sel_nodes: tuple, of_var: float):
 
     i, j = sel_nodes
     route = solution['routes'][k]
@@ -69,7 +69,7 @@ def do_intra_shift(solution, k, sel_nodes, of_var):
     solution['of'] = round(of, 2)
 
 
-def do_intra_swap(solution, k, sel_nodes, of_var):
+def do_intra_swap(solution: dict, k: int, sel_nodes: tuple[int, int], of_var: float):
 
     i, j = sel_nodes
     route = solution['routes'][k]
@@ -81,7 +81,7 @@ def do_intra_swap(solution, k, sel_nodes, of_var):
     solution['of'] = round(of, 2)
 
 
-def do_intra_2opt(solution, k, sel_nodes, of_var):
+def do_intra_2opt(solution: dict, k: int, sel_nodes: tuple[int, int], of_var: float):
 
     i, j = sel_nodes
     route = solution['routes'][k]
@@ -93,7 +93,7 @@ def do_intra_2opt(solution, k, sel_nodes, of_var):
     solution['of'] = round(of, 2)
 
 
-def do_inter_shift(solution, sel_routes, sel_nodes, of_var):
+def do_inter_shift(solution: dict, sel_routes: tuple[int, int], sel_nodes: tuple[int, int], of_var: float):
 
     nodes = solution['instance']['nodes']
 
@@ -129,7 +129,7 @@ def do_inter_shift(solution, sel_routes, sel_nodes, of_var):
     load[l] += node_demand
 
 
-def do_inter_swap(solution, sel_routes, sel_nodes, of_var):
+def do_inter_swap(solution: dict, sel_routes: tuple[int, int], sel_nodes: tuple[int, int], of_var: float):
 
     nodes = solution['instance']['nodes']
 
@@ -179,7 +179,7 @@ def do_inter_swap(solution, sel_routes, sel_nodes, of_var):
     load_i[k] += j_demand
 
 
-def evaluate(solution):
+def evaluate(solution: dict):
 
     cost = solution['instance']['cost']
 
@@ -194,7 +194,7 @@ def evaluate(solution):
     return round(dist, 2)
 
 
-def check_feasibility(solution):
+def check_feasibility(solution: dict):
 
     feasible = True
 
@@ -246,7 +246,7 @@ def check_feasibility(solution):
     return feasible
 
 
-def print_solution(solution):
+def print_solution(solution: dict):
 
     l = solution['instance']['l']
     routes = solution['routes']
