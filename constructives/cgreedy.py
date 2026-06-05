@@ -3,8 +3,6 @@ from structure import solution
 def construct(inst: dict, beta: float, first: str='linehauls'):
 
     sol = solution.create_empty_solution(inst)
-
-    # cl = add_initial_nodes(sol, beta, first)
     cl = create_candidate_list(sol, beta, first)
 
     pending_linehauls = sol['pending_linehauls']

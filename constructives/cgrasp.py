@@ -42,6 +42,7 @@ def construct(inst: dict, alpha: float, beta: float, first: str='both'):
     return sol
 
 
+# TODO: delete this
 def add_initial_nodes_distance(sol: dict, alpha: float, beta: float, first: str='both'):
 
     n_vehicles = sol['instance']['l']
