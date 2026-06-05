@@ -1,6 +1,6 @@
 from structure import solution
 
-def construct(inst: dict, beta: float, first: str='both'):
+def construct(inst: dict, beta: float, first: str='linehauls'):
 
     sol = solution.create_empty_solution(inst)
 
@@ -30,14 +30,53 @@ def construct(inst: dict, beta: float, first: str='both'):
             sol['feasible'] = True
         elif first == 'linehauls' and not pending_linehauls and not last_linehauls_added:
             last_linehauls_added = True
-            cl = create_candidate_list(sol, beta, 'linehauls')
+            cl = create_candidate_list(sol, beta,  'linehauls')
         else:
             cl = update_candidate_list(sol, beta, cl, sel, first)
 
     return sol
 
 
-def add_initial_nodes(sol: dict, beta: float, first: str='both'):
+def construct_with_initial_nodes(inst: dict, beta: float, first: str='linehauls', priority='distance'):
+
+    sol = solution.create_empty_solution(inst)
+
+    if priority == 'demand':
+        cl = add_initial_nodes_with_demand_priority(sol, beta, first)
+    else:
+        cl = add_initial_nodes(sol, beta, first)
+
+    pending_linehauls = sol['pending_linehauls']
+    pending_backhauls = sol['pending_backhauls']
+    last_linehauls_added = False
+
+    while not sol['feasible']:
+
+        if not cl:
+            print("No s'ha trobat una solució factible")
+            return sol
+
+        min_score, sel = float('inf'), (0, 0, 0, 0)
+
+        for c in cl:
+            if c[0] < min_score:
+                min_score = c[0]
+                sel = c[1]
+
+        solution.insert_candidate(sol, sel)
+
+        if not pending_linehauls and not pending_backhauls:
+            sol['feasible'] = True
+        elif first == 'linehauls' and not pending_linehauls and not last_linehauls_added:
+            last_linehauls_added = True
+            cl = create_candidate_list(sol, beta,  'linehauls')
+        else:
+            cl = update_candidate_list(sol, beta, cl, sel, first)
+
+    return sol
+
+
+def add_initial_nodes(sol: dict, beta: float, first: str='linehauls'):
 
     n_vehicles = sol['instance']['l']
 
@@ -48,7 +87,7 @@ def add_initial_nodes(sol: dict, beta: float, first: str='both'):
         if not cl:
             break
 
-        score_max, sel = 0, tuple()
+        score_max, sel = 0, (0.0, 0, 0, 0)
 
         for c in cl:
             if c[1][1] != k:
@@ -63,14 +102,40 @@ def add_initial_nodes(sol: dict, beta: float, first: str='both'):
     return cl
 
 
-def create_candidate_list(sol: dict, beta: float, first: str='both'):
+def add_initial_nodes_with_demand_priority(sol: dict, beta: float, first: str='linehauls'):
 
-    nodes = sol['instance']['nodes']
-    cost = sol['instance']['cost']
+    inst = sol['instance']
+    nodes = inst['nodes']
+    cost = inst['cost']
+    n_vehicles = inst['l']
+
+    pending_linehauls = sol['pending_linehauls']
+
+    sorted_nodes = sorted(
+        pending_linehauls,
+        key=lambda n_id: nodes[n_id][3],
+        reverse=True
+    )
+
+    for k in range(n_vehicles):
+        node_id = sorted_nodes[k]
+        of_var = 2 * cost[0][node_id]
+        solution.insert_candidate(sol, (of_var, k, 1, node_id))
+
+    cl = create_candidate_list(sol, beta, first)
+
+    return cl
+
+
+def create_candidate_list(sol: dict, beta: float, first: str='linehauls'):
+
+    inst = sol['instance']
+    nodes = inst['nodes']
+    cost = inst['cost']
     routes = sol['routes']
 
-    n_vehicles = sol['instance']['l']
-    q = sol['instance']['q']
+    n_vehicles = inst['l']
+    q = inst['q']
 
     pending_linehauls = sol['pending_linehauls']
     pending_backhauls = sol['pending_backhauls']
@@ -129,14 +194,14 @@ def create_candidate_list(sol: dict, beta: float, first: str='both'):
     return cl
 
 
-def update_candidate_list(sol: dict, beta: float, cl: list, added: tuple, first: str='both'):
+def update_candidate_list(sol: dict, beta: float, cl: list, added: tuple, first: str='linehauls'):
 
     _, modified_k, _, added_id = added
 
-    nodes = sol['instance']['nodes']
-    cost = sol['instance']['cost']
-
-    q = sol['instance']['q']
+    inst = sol['instance']
+    nodes = inst['nodes']
+    cost = inst['cost']
+    q = inst['q']
 
     pending_linehauls = sol['pending_linehauls']
     pending_backhauls = sol['pending_backhauls']
