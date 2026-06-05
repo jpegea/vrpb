@@ -16,7 +16,7 @@ def create_empty_solution(instance: dict):
     return sol
 
 
-def insert_candidate(solution: dict, candidate: tuple):
+def insert_candidate(solution: dict, candidate: tuple[float, int, int, int]):
 
     of_var, k, pos, node_id = candidate
 
@@ -53,7 +53,7 @@ def insert_candidate(solution: dict, candidate: tuple):
     load[k] += node_demand
 
 
-def do_intra_shift(solution: dict, k: int, sel_nodes: tuple, of_var: float):
+def do_intra_shift(solution: dict, k: int, sel_nodes: tuple[int, int], of_var: float):
 
     i, j = sel_nodes
     route = solution['routes'][k]
