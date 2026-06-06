@@ -35,7 +35,7 @@ def construct(inst: dict, beta: float, first: str='linehauls'):
     return sol
 
 
-def construct_with_initial_nodes(inst: dict, beta: float, first: str='linehauls', priority='distance'):
+def construct_with_initial_nodes(inst: dict, beta: float, first: str='linehauls', priority: str='distance'):
 
     sol = solution.create_empty_solution(inst)
 
