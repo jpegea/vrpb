@@ -2,6 +2,7 @@ from constructives import cgrasp
 from localsearch import ls_full, ls_neighbors
 from structure import instance
 import statistics, time
+from collections import deque
 
 
 def execute_full_ls(inst: dict, time_limit: float, alpha: float, strategy: str='best', first_in_construction: str='linehauls'):
@@ -34,47 +35,54 @@ def execute_full_ls(inst: dict, time_limit: float, alpha: float, strategy: str='
     return best, iters
 
 
-def execute_ensuring_feasibility(inst: dict, time_limit: float, alpha: float, max_not_feasible_ratio: float=.9,
-                                 strategy: str='best', first_in_construction: str='linehauls'):
+def execute_ensuring_feasibility(inst: dict, time_limit: float, alpha: float, strategy: str='best',
+                                 first_in_construction: str='linehauls'):
 
     best = {}
     iters = 0
 
+    max_ratio = .9
     beta = 0
-    n_created_sols = 0
-    not_feasible_sols = 0
+
+    kp = 0.7
+    kd = 0.4
+    prev_error = 0.0
+    history = deque(maxlen=30)
 
     start = time.time()
 
+    n_created_sols = 0
+
     while time.time() - start < time_limit:
 
-        sol = cgrasp.construct(inst, alpha, beta, first=first_in_construction)
+        sol = cgrasp.construct(inst, alpha, beta, first_in_construction)
         n_created_sols += 1
-        feasibility_checked = 1
+        history.append(1 if not sol['feasible'] else 0)
 
         while not sol['feasible']:
-            not_feasible_sols += 1
-
             if time.time() - start > time_limit:
                 if not best:
                     best = sol
                 return best, iters
 
-            sol = cgrasp.construct(inst, alpha, beta, first=first_in_construction)
+            sol = cgrasp.construct(inst, alpha, beta, first_in_construction)
             n_created_sols += 1
+            history.append(1 if not sol['feasible'] else 0)
 
-            if n_created_sols <= 5 * feasibility_checked:
-                if not_feasible_sols / n_created_sols > max_not_feasible_ratio and beta < 1:
-                    beta += .05
-                    beta = round(beta, 2)
-                elif not_feasible_sols / n_created_sols < max_not_feasible_ratio and beta > 0:
-                    beta -= .01
-                    beta = round(beta, 2)
-                feasibility_checked += 1
+            current_ratio = sum(history) / len(history)
+
+            if n_created_sols % 10 == 0:
+                error = current_ratio - max_ratio
+
+                prop = kp * error
+                der = kd * (error - prev_error)
+                delta_beta = prop + der
+
+                beta = max(0.0, min(1.0, beta + delta_beta))
+
+                prev_error = error
 
         iters += 1
-
-        print(f'Sol {iters}: {sol['of']}')
 
         ls_full.improve_routes(sol, strategy)
         ls_full.improve_inter_route(sol, strategy)
