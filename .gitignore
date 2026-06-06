@@ -81,3 +81,7 @@ Icon\r
 *.bak
 *.swp
 *~
+
+
+# Marimo notebook
+__marimo__
