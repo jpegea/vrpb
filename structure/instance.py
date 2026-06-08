@@ -109,7 +109,7 @@ def export_ampl(inst: dict):
     print(f"param n := {n};")
     print(f"param m := {m};")
     print(f"param l := {inst['l']};")
-    print(f"param q := {inst['q']};\n")
+    print(f"param Q := {inst['q']};\n")
 
     nodes = inst['nodes']
     linehauls = inst['linehauls']
