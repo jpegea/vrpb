@@ -40,9 +40,11 @@ def construct_with_initial_nodes(inst: dict, beta: float, first: str='linehauls'
     sol = solution.create_empty_solution(inst)
 
     if priority == 'demand':
-        cl = add_initial_nodes_with_demand_priority(sol, beta, first)
+        add_initial_nodes_with_demand_priority(sol)
     else:
-        cl = add_initial_nodes(sol, beta, first)
+        add_initial_nodes_with_distance_priority(sol)
+
+    cl = create_candidate_list(sol, beta, first)
 
     pending_linehauls = sol['pending_linehauls']
     pending_backhauls = sol['pending_backhauls']
@@ -74,33 +76,29 @@ def construct_with_initial_nodes(inst: dict, beta: float, first: str='linehauls'
     return sol
 
 
-def add_initial_nodes(sol: dict, beta: float, first: str='linehauls'):
+def add_initial_nodes_with_distance_priority(sol: dict):
 
-    n_vehicles = sol['instance']['l']
+    inst = sol['instance']
+    cost = inst['cost']
+    n_vehicles = inst['l']
 
-    cl = create_candidate_list(sol, beta, first)
+    pending_linehauls = sol['pending_linehauls']
+    routes = sol['routes']
 
     for k in range(n_vehicles):
-
-        if not cl:
+        if not pending_linehauls:
             break
-
-        score_max, sel = 0, (0.0, 0, 0, 0)
-
-        for c in cl:
-            if c[1][1] != k:
-                continue
-            if c[0] > score_max:
-                score_max = c[0]
-                sel = c[1]
-
-        solution.insert_candidate(sol, sel)
-        cl = update_candidate_list(sol, beta, cl, sel, first)
-
-    return cl
+        max_dist, node_id = 0.0, 0
+        for n_id in pending_linehauls:
+            dist = cost[0][n_id] + sum(cost[n_id][routes[l][1]] for l in range(k-1))
+            if dist > max_dist:
+                max_dist = dist
+                node_id = n_id
+        of_var = 2 * cost[0][node_id]
+        solution.insert_candidate(sol, (of_var, k, 1, node_id))
 
 
-def add_initial_nodes_with_demand_priority(sol: dict, beta: float, first: str='linehauls'):
+def add_initial_nodes_with_demand_priority(sol: dict):
 
     inst = sol['instance']
     nodes = inst['nodes']
@@ -119,10 +117,6 @@ def add_initial_nodes_with_demand_priority(sol: dict, beta: float, first: str='l
         node_id = sorted_nodes[k]
         of_var = 2 * cost[0][node_id]
         solution.insert_candidate(sol, (of_var, k, 1, node_id))
-
-    cl = create_candidate_list(sol, beta, first)
-
-    return cl
 
 
 def create_candidate_list(sol: dict, beta: float, first: str='linehauls'):
