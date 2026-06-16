@@ -106,14 +106,14 @@ def inter_shift(sol: dict, neighbors: dict, strategy: str='best'):
                         # First improvement
                         if strategy == 'first':
                             solution.do_inter_shift(sol, sel_routes, sel_nodes, best_of_var)
-                            ls_full.improve_intra_route(sol, sel_routes[0], strategy)
-                            ls_full.improve_intra_route(sol, sel_routes[1], strategy)
+                            ls_full.vnd_intra(sol, sel_routes[0], strategy)
+                            ls_full.vnd_intra(sol, sel_routes[1], strategy)
                             return True
 
     if best_of_var < 0:
         solution.do_inter_shift(sol, sel_routes, sel_nodes, best_of_var)
-        ls_full.improve_intra_route(sol, sel_routes[0], strategy)
-        ls_full.improve_intra_route(sol, sel_routes[1], strategy)
+        ls_full.vnd_intra(sol, sel_routes[0], strategy)
+        ls_full.vnd_intra(sol, sel_routes[1], strategy)
         return True
 
     return False
@@ -240,15 +240,15 @@ def inter_swap(sol: dict, neighbors: dict, strategy: str='best'):
                         # First improvement
                         if strategy == 'first':
                             solution.do_inter_swap(sol, sel_routes, sel_nodes, best_of_var)
-                            ls_full.improve_intra_route(sol, sel_routes[0], strategy)
-                            ls_full.improve_intra_route(sol, sel_routes[1], strategy)
+                            ls_full.vnd_intra(sol, sel_routes[0], strategy)
+                            ls_full.vnd_intra(sol, sel_routes[1], strategy)
                             return True
 
     # Best improvement
     if best_of_var < 0:
         solution.do_inter_swap(sol, sel_routes, sel_nodes, best_of_var)
-        ls_full.improve_intra_route(sol, sel_routes[0], strategy)
-        ls_full.improve_intra_route(sol, sel_routes[1], strategy)
+        ls_full.vnd_intra(sol, sel_routes[0], strategy)
+        ls_full.vnd_intra(sol, sel_routes[1], strategy)
         return True
 
     return False

@@ -41,8 +41,11 @@ def construct_with_initial_nodes(inst: dict, beta: float, first: str='linehauls'
 
     if priority == 'demand':
         add_initial_nodes_with_demand_priority(sol)
-    else:
+    elif priority == 'distance':
         add_initial_nodes_with_distance_priority(sol)
+    else:
+        print("ERROR GARRAFAL")
+        return sol
 
     cl = create_candidate_list(sol, beta, first)
 

@@ -44,9 +44,14 @@ def construct_with_initial_nodes(inst:dict, alpha: float, beta: float, first: st
 
     sol = solution.create_empty_solution(inst)
     if priority == 'demand':
-        cl = add_initial_nodes_with_demand_priority(sol, alpha, beta, first)
+        add_initial_nodes_with_demand_priority(sol, alpha)
+    elif priority == 'distance':
+        add_initial_nodes_with_distance_priority(sol, alpha)
     else:
-        cl = add_initial_nodes(sol, alpha, beta, first)
+        print('ERROR GARRAFAL')
+        return sol
+    
+    cl = cgreedy.create_candidate_list(sol, beta, first)
 
     pending_linehauls = sol['pending_linehauls']
     pending_backhauls = sol['pending_backhauls']
@@ -81,15 +86,46 @@ def construct_with_initial_nodes(inst:dict, alpha: float, beta: float, first: st
     return sol
 
 
-def add_initial_nodes(sol: dict, alpha: float, beta: float, first: str='linehauls'):
+def add_initial_nodes_with_distance_priority(sol: dict, alpha: float):
+    inst = sol['instance']
+    cost = inst['cost']
+    n_vehicles = inst['l']
 
-    n_vehicles = sol['instance']['l']
-
-    cl = cgreedy.create_candidate_list(sol, beta, first)
+    pending_linehauls = sol['pending_linehauls']
+    routes = sol['routes']
 
     for k in range(n_vehicles):
 
-        candidates = [el[1] for el in cl if el[1][1] == k]
+        if not pending_linehauls:
+            break
+
+        cl: list[tuple[float, int]] = []
+        max_dist, min_dist = float('-inf'), float('inf')
+        for n_id in pending_linehauls:
+            dist = cost[0][n_id] + sum(cost[n_id][routes[l][1]] for l in range(k-1))
+            cl.append((dist, n_id))
+            max_dist = max(max_dist, dist)
+            min_dist = min(min_dist, dist)
+            
+        threshold = max_dist - alpha * (max_dist - min_dist)
+        rcl = [c for c in cl if c[0] >= threshold]
+
+        sel_idx = random.randint(0, len(rcl) - 1)
+        node_id = rcl[sel_idx][1]
+
+        of_var = 2 * cost[0][node_id]
+        solution.insert_candidate(sol, (of_var, k, 1, node_id))
+
+
+def add_initial_nodes_with_demand_priority(sol: dict, alpha: float):
+
+    n_vehicles = sol['instance']['l']
+
+    cl = cgreedy.create_candidate_list(sol, 1, 'linehauls')
+
+    for k in range(n_vehicles):
+
+        candidates = [c for c in cl if c[1][1] == k]
 
         if not candidates:
             break
@@ -99,45 +135,12 @@ def add_initial_nodes(sol: dict, alpha: float, beta: float, first: str='linehaul
             c_min = min(c_min, c[0])
             c_max = max(c_max, c[0])
 
-        threshold = c_max - alpha * (c_max - c_min)
-        rcl = [c for c in candidates if c[0] >= threshold]
+        threshold = c_min + alpha * (c_max - c_min)
+        rcl = [c[1] for c in candidates if c[0] <= threshold]
 
         sel_idx = random.randint(0, len(rcl) - 1)
 
         sel = rcl[sel_idx]
         solution.insert_candidate(sol, sel)
 
-        cl = cgreedy.update_candidate_list(sol, beta, cl, sel, first)
-
-    return cl
-
-
-def add_initial_nodes_with_demand_priority(sol: dict, alpha: float, beta: float, first: str='linehauls'):
-
-    n_vehicles = sol['instance']['l']
-
-    cl = cgreedy.create_candidate_list(sol, 1, first)
-
-    for k in range(n_vehicles):
-
-        candidates = [el[1] for el in cl if el[1][1] == k]
-
-        if not candidates:
-            break
-
-        c_min, c_max = float('inf'), float('-inf')
-        for c in candidates:
-            c_min = min(c_min, c[0])
-            c_max = max(c_max, c[0])
-
-        threshold = c_max - alpha * (c_max - c_min)
-        rcl = [c for c in candidates if c[0] >= threshold]
-
-        sel_idx = random.randint(0, len(rcl) - 1)
-
-        sel = rcl[sel_idx]
-        solution.insert_candidate(sol, sel)
-
-        cl = cgreedy.create_candidate_list(sol, beta, first)
-
-    return cl
+        cl = cgreedy.update_candidate_list(sol, 1, cl, sel, 'linehauls')
