@@ -176,7 +176,7 @@ def do_inter_swap(solution: dict, sel_routes: tuple[int, int], sel_nodes: tuple[
         load_j = solution['pickup']
 
     load_j[l] -= j_demand
-    load_i[k] += j_demand
+    load_j[k] += j_demand
 
 
 def evaluate(solution: dict):

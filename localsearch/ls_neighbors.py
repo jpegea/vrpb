@@ -1,20 +1,21 @@
 from localsearch import ls_full
 from structure import solution
 
-def improve_inter_route(sol: dict, neighbors: dict, strategy: str= 'best', show_operations: bool=False):
+
+def vnd(sol: dict, neighbors: dict, strategy_intra: str='first', strategy_inter: str='first'):
+    l = sol['instance']['l']
+    for k in range(l):
+        ls_full.improve_route(sol, k, strategy_intra)
+        
     improvement = True
     while improvement:
-        improvement = inter_shift(sol, neighbors, strategy)
-        if improvement and show_operations:
-            print('Inter: Shift')
+        improvement = inter_swap(sol, strategy_inter, strategy_intra)
         if not improvement:
-            improvement = inter_swap(sol, neighbors, strategy)
-            if improvement and show_operations:
-                print('Inter: Swap')
+            improvement = inter_shift(sol, strategy_inter, strategy_intra)
 
 
 
-def inter_shift(sol: dict, neighbors: dict, strategy: str='best'):
+def inter_shift(sol: dict, neighbors: dict, strategy: str='first', strategy_intra: str='first'):
 
     inst = sol['instance']
     nodes = inst['nodes']
@@ -106,20 +107,20 @@ def inter_shift(sol: dict, neighbors: dict, strategy: str='best'):
                         # First improvement
                         if strategy == 'first':
                             solution.do_inter_shift(sol, sel_routes, sel_nodes, best_of_var)
-                            ls_full.vnd_intra(sol, sel_routes[0], strategy)
-                            ls_full.vnd_intra(sol, sel_routes[1], strategy)
+                            ls_full.improve_route(sol, sel_routes[0], strategy_intra)
+                            ls_full.improve_route(sol, sel_routes[1], strategy_intra)
                             return True
 
     if best_of_var < 0:
         solution.do_inter_shift(sol, sel_routes, sel_nodes, best_of_var)
-        ls_full.vnd_intra(sol, sel_routes[0], strategy)
-        ls_full.vnd_intra(sol, sel_routes[1], strategy)
+        ls_full.improve_route(sol, sel_routes[0], strategy_intra)
+        ls_full.improve_route(sol, sel_routes[1], strategy_intra)
         return True
 
     return False
 
 
-def inter_swap(sol: dict, neighbors: dict, strategy: str='best'):
+def inter_swap(sol: dict, neighbors: dict, strategy: str='first', strategy_intra: str='first'):
 
     inst = sol['instance']
     nodes = inst['nodes']
@@ -240,15 +241,15 @@ def inter_swap(sol: dict, neighbors: dict, strategy: str='best'):
                         # First improvement
                         if strategy == 'first':
                             solution.do_inter_swap(sol, sel_routes, sel_nodes, best_of_var)
-                            ls_full.vnd_intra(sol, sel_routes[0], strategy)
-                            ls_full.vnd_intra(sol, sel_routes[1], strategy)
+                            ls_full.improve_route(sol, sel_routes[0], strategy_intra)
+                            ls_full.improve_route(sol, sel_routes[1], strategy_intra)
                             return True
 
     # Best improvement
     if best_of_var < 0:
         solution.do_inter_swap(sol, sel_routes, sel_nodes, best_of_var)
-        ls_full.vnd_intra(sol, sel_routes[0], strategy)
-        ls_full.vnd_intra(sol, sel_routes[1], strategy)
+        ls_full.improve_route(sol, sel_routes[0], strategy_intra)
+        ls_full.improve_route(sol, sel_routes[1], strategy_intra)
         return True
 
     return False

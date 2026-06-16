@@ -15,11 +15,13 @@ def execute(inst: dict, time_limit: float, alpha: float):
     while time.time() - start < time_limit:
 
         sol = cgrasp.construct(inst, alpha, beta=0)
+
         while not sol['feasible']:
             if time.time() - start > time_limit:
                 if not best:
                     best = sol
                 return best, iters
+            
             sol = cgrasp.construct(inst, alpha, beta=0)
 
         iters += 1
@@ -179,9 +181,9 @@ def execute_filtering(inst: dict, time_limit: float, alpha: int, sample_size: in
     return best, iters
 
 
-def execute_k_neightbors(inst: dict, time_limit: float, alpha: float):
+def execute_k_neighbors(inst: dict, time_limit: float, alpha: float, k: int=15):
 
-    neighbors = instance.eval_k_neighbors(inst, 15)
+    neighbors = instance.eval_k_neighbors(inst, k)
 
     best = {}
     iters = 0
@@ -202,7 +204,7 @@ def execute_k_neightbors(inst: dict, time_limit: float, alpha: float):
 
         iters += 1
 
-        # ls_neighbors.improve_inter_route(sol, neighbors, strategy)
+        ls_neighbors.vnd(sol, neighbors, 'first', 'first')
 
         if not best or sol['of'] < best['of']:
             best = sol
