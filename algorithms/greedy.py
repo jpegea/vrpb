@@ -1,7 +1,7 @@
 from constructives import cgreedy
 
-def execute(inst):
-    sol = cgreedy.construct(inst, 0, 'linehauls')
+def execute(inst, strategy='linehauls'):
+    sol = cgreedy.construct(inst, 0, strategy)
     return sol
 
 def execute_with_initial_nodes(inst, priority='distance'):

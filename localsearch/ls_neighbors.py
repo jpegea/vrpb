@@ -9,9 +9,9 @@ def vnd(sol: dict, neighbors: dict, strategy_intra: str='first', strategy_inter:
         
     improvement = True
     while improvement:
-        improvement = inter_swap(sol, strategy_inter, strategy_intra)
+        improvement = inter_swap(sol, neighbors, strategy_inter, strategy_intra)
         if not improvement:
-            improvement = inter_shift(sol, strategy_inter, strategy_intra)
+            improvement = inter_shift(sol, neighbors, strategy_inter, strategy_intra)
 
 
 

@@ -79,7 +79,7 @@ def read_instance(path):
 def eval_k_neighbors(inst: dict, k: int):
 
     cost = inst['cost']
-    n_clients = inst['n']
+    n_clients = inst['n'] + inst['m']
 
     k_neighbors = {}
 
