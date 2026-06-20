@@ -76,6 +76,82 @@ def read_instance(path):
     return instance
 
 
+def read_instance_round_dist(path):
+
+    instance = {}
+
+    file_format = 'tv'
+
+    with open(path, 'r') as f:
+        first_word, _, _, _, _, _, _, _, _ = f.readline().split(',')
+
+        if first_word == 'type':
+            file_format = 'gj'
+
+        _, _, x, y, _, q, l, n, m = f.readline().split(',')
+
+        n = int(n)
+        m = int(m)
+
+        n_clients = n + m
+
+        instance['q'] = int(q)
+        instance['l'] = int(l)
+        instance['n'] = n
+        instance['m'] = m
+
+        instance['nodes'] = [[0]*4 for _ in range(n+m+1)]
+        instance['cost'] = [[0]*(n+m+1) for _ in range(n+m+1)]
+
+        instance['linehauls'] = set()
+        instance['backhauls'] = set()
+
+        nodes = instance['nodes']
+        linehauls = instance['linehauls']
+        backhauls = instance['backhauls']
+
+        nodes[0] = [0, 0, (int(x), int(y)), 0]
+
+        for _ in range(n_clients):
+            node_type, node_id, x, y, demand, _, _, _, _ = f.readline().split(',')
+
+            if file_format == 'tv':
+                node_type, node_id = int(node_id) + 1, int(node_type) - 1
+            else:
+                node_type = int(node_type)
+                node_id = int(node_id)
+
+            nodes[node_id] = [node_type, node_id, (int(x), int(y)), int(demand)]
+
+            if node_type == 1:
+                linehauls.add(node_id)
+
+            if node_type == 2:
+                backhauls.add(node_id)
+
+        cost = instance['cost']
+
+        for i in range(n_clients + 1):
+
+            i_data = nodes[i]
+            i_pos = i_data[2]
+
+            for j in range(n_clients + 1):
+
+                if i == j:
+                    continue
+
+                j_data = nodes[j]
+                j_pos = j_data[2]
+
+                dist = math.dist(i_pos, j_pos)
+
+                cost[i][j] = round(dist, 1)
+                cost[j][i] = round(dist, 1)
+
+    return instance
+
+
 def eval_k_neighbors(inst: dict, k: int):
 
     cost = inst['cost']
