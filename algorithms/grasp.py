@@ -43,8 +43,8 @@ def execute_ensuring_feasibility(inst: dict, time_limit: float, alpha: float):
 
     max_ratio = .9
     beta = 0
-    kp = 0.7
-    kd = 0.4
+    kp = 0.4
+    kd = 0.25
     prev_error = 0.0
     history = deque(maxlen=30)
     n_created_sols = 0
@@ -225,8 +225,8 @@ def final_boss(inst: dict, time_limit: float=600, alpha: float=0.1, k: int=25):
 
     max_ratio = .9
     beta = 0
-    kp = 0.7
-    kd = 0.4
+    kp = 0.4
+    kd = 0.25
     prev_error = 0.0
     history = deque(maxlen=30)
     n_created_sols = 0
